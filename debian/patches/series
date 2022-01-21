@@ -1,0 +1,10 @@
+01-374327-use-gnutls.patch
+02-557725-solaris.patch
+03-557741-remote-addr.patch
+debian-changes-2.64-1
+04-508759-garbage.patch
+05-LDFLAGS.patch
+ssmtp-bug584162-fix.patch
+fix-tls1.3-handshake.patch
+keep-from-header-intact.patch
+config-openssl-gnutls-alts.patch

@@ -1,0 +1,150 @@
+Index: ssmtp-2.64/configure.in
+===================================================================
+--- a/configure.in	2022-01-16 16:05:34.000000000 -0600
++++ b/configure.in	2022-01-16 11:46:19.753617067 -0600
+@@ -48,14 +48,32 @@
+ fi
+ enableval=""
+ 
+-AC_ARG_ENABLE(ssl,
+-[  --enable-ssl           support for secure connection to mail server])
++AC_ARG_ENABLE(openssl,
++[  --enable-openssl       use OpenSSL for secure connection to mail server])
+ if test x$enableval = xyes ; then
++	AC_CHECK_HEADERS(openssl/crypto.h openssl/x509.h openssl/pem.h openssl/ssl.h openssl/err.h,,[AC_MSG_ERROR([cannot find all openssl headers, bailing...])])
+ 	AC_DEFINE(HAVE_SSL)
+-	LIBS="$LIBS -lgnutls-openssl"
++	AC_DEFINE(HAVE_OPENSSL)
++	LIBS="$LIBS -lssl -lcrypto"
++        opensslset=yes
+ fi
+ enableval=""
+ 
++AC_ARG_ENABLE(gnutls,
++[  --enable-gnutls        use GNUTLS for secure connection to mail server])
++if test x$enableval = xyes ; then
++	AC_CHECK_HEADERS(gnutls/openssl.h,,[AC_MSG_ERROR([cannot find gnutls/openssl.h, bailing...])])
++	AC_DEFINE(HAVE_SSL)
++	AC_DEFINE(HAVE_GNUTLS)
++	LIBS="$LIBS -lgnutls"
++        gnutlsset=yes
++fi
++enableval=""
++
++if test x$opensslset = "xyes" -a x$gnutlsset = "xyes"; then
++	AC_MSG_ERROR([select either --enable-openssl or --enable-gnutls, not both])
++fi
++
+ AC_ARG_ENABLE(inet6,
+ [  --enable-inet6         support for IPv6 transport])
+ if test x$enableval = xyes ; then
+
+Index: ssmtp-2.64/ssmtp.c
+===================================================================
+--- a/ssmtp.c	2022-01-16 16:05:34.000000000 -0600
++++ b/ssmtp.c	2022-01-16 16:25:14.677962756 -0600
+@@ -26,7 +26,16 @@
+ #include <ctype.h>
+ #include <netdb.h>
+ #ifdef HAVE_SSL
+-#include <gnutls/openssl.h>
++  #ifdef HAVE_OPENSSL
++    #include <openssl/crypto.h>
++    #include <openssl/x509.h>
++    #include <openssl/pem.h>
++    #include <openssl/ssl.h>
++    #include <openssl/err.h>
++  #endif
++  #ifdef HAVE_GNUTLS
++    #include <gnutls/openssl.h>
++  #endif
+ #endif
+ #ifdef MD5AUTH
+ #include "md5auth/hmac_md5.h"
+@@ -1133,7 +1142,12 @@
+ 	}
+ 
+ 	if(use_cert == True) { 
++#ifdef HAVE_OPENSSL
++                if(SSL_CTX_use_certificate_chain_file(ctx, tls_cert) <= 0) {
++#endif
++#ifdef HAVE_GNUTLS
+ 		if(SSL_CTX_use_certificate_file(ctx, tls_cert, SSL_FILETYPE_PEM) <= 0) {
++#endif
+ 			perror("Use certfile");
+ 			return(-1);
+ 		}
+@@ -1143,7 +1157,7 @@
+ 			return(-1);
+ 		}
+ 
+-#ifdef NOT_USED
++#ifdef HAVE_OPENSSL
+ 		if(!SSL_CTX_check_private_key(ctx)) {
+ 			log_event(LOG_ERR, "Private key does not match the certificate public key\n");
+ 			return(-1);
+
+Index: ssmtp-2.64/configure
+===================================================================
+--- a/configure	2022-01-16 16:36:03.000000000 -0600
++++ b/configure	2022-01-19 12:50:54.785494630 -0600
+@@ -17,7 +17,9 @@
+   --disable-rewrite-domain
+                           support for rewriting the sending domain"
+ ac_help="$ac_help
+-  --enable-ssl           support for secure connection to mail server"
++  --enable-openssl       use OpenSSL for secure connection to mail server"
++ac_help="$ac_help
++  --enable-gnutls        use GNUTLS for secure connection to mail server"
+ ac_help="$ac_help
+   --enable-inet6         support for IPv6 transport"
+ ac_help="$ac_help
+@@ -1551,21 +1553,44 @@
+ fi
+ enableval=""
+ 
+-# Check whether --enable-ssl or --disable-ssl was given.
+-if test "${enable_ssl+set}" = set; then
+-  enableval="$enable_ssl"
++# Check whether --enable-openssl or --disable-openssl was given.
++if test "${enable_openssl+set}" = set; then
++  enableval="$enable_openssl"
++  :
++fi
++
++if test x$enableval = xyes ; then
++	cat >> confdefs.h <<\EOF
++#define HAVE_SSL 1
++#define HAVE_OPENSSL 1
++EOF
++
++	LIBS="$LIBS -lssl -lcrypto"
++	opensslset=yes
++fi
++enableval=""
++
++# Check whether --enable-gnutls or --disable-gnutls was given.
++if test "${enable_gnutls+set}" = set; then
++  enableval="$enable_gnutls"
+   :
+ fi
+ 
+ if test x$enableval = xyes ; then
+ 	cat >> confdefs.h <<\EOF
+ #define HAVE_SSL 1
++#define HAVE_GNUTLS 1
+ EOF
+ 
+ 	LIBS="$LIBS -lgnutls-openssl"
++	gnutlsset=yes
+ fi
+ enableval=""
+ 
++if test x$opensslset = "xyes" -a x$gnutlsset = "xyes"; then
++	{ echo "configure: error: select either --enable-openssl or --enable-gnutls, not both" 1>&2; exit 1; }
++fi
++
+ # Check whether --enable-inet6 or --disable-inet6 was given.
+ if test "${enable_inet6+set}" = set; then
+   enableval="$enable_inet6"
+
