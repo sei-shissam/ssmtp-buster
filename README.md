@@ -32,7 +32,7 @@ $ ls -l /usr/sbin/ssmtp; (ldd /usr/sbin/ssmtp | grep ssl)
 
 Switch back to OpenSSL!
 
-Inspired by this [post at Erik's Online Corner](https://espinoza.tv/post/ssmtp-buster/) and using the latest (and last?) [code here](), sSMTP was recompiled with all the debian patches to use OpenSSL rather than GnuTLS. It worked.
+Inspired by this [post at Erik's Online Corner](https://espinoza.tv/post/ssmtp-buster/) and using the latest (and last?) [from the Debian repo here](https://salsa.debian.org/debian/ssmtp.git), sSMTP was recompiled with all the debian patches to use OpenSSL rather than GnuTLS. It worked.
 
 ```
 $ ls -l /usr/sbin/ssmtp; (ldd /usr/sbin/ssmtp | grep ssl)
@@ -46,6 +46,52 @@ In this repo, are the changes I made to the Debian GitLab instance of sSMTP to t
 
 Here are the susscinct steps which have been tested on Raspbian Stretch, Raspbian Buster, and Ubuntu 18.04 Bionic Buster.
 
+```
+cd ~/src
+#
+# grab these patches for building under Buster
+#
+git clone https://github.com/shissam/ssmtp-buster.git
+#
+# grab the Debian sSMTP repo
+#
+git clone https://salsa.debian.org/debian/ssmtp.git
+#
+cd ssmtp
+#
+# these patches are based on the following commit revision
+#
+git log | head -3
+commit d4631356318ae3f78f15bd55eeae295dec2a48e2
+Author: Jelmer Vernooĳ <jelmer@jelmer.uk>
+Date:   Wed Feb 3 12:30:25 2021 +0000
+#
+# copy the changes and new files from the patches repo
+cd ../ssmtp-buster
+tar cf - * | (cd ../ssmtp/ ; tar xfp -)
+cd ../ssmtp
+#
+# now the choice, to build with the default, Debian
+# selected GnuTLS, simply
+#
+dpkg buildpackage -b
+#
+# alternatively, to build with OpenSSL, simply
+#
+dpkg buildpackage --rules-file=debian/rules.openssl
+#
+#### If necessary, resolved dependencies
+
+There can only be one debian/control file, so it is necessary to install both GnuTLS and OpenSSL devs otherwise edit debian/control and remove the one not needed
+
+```
+apt-get install po-debconf libgnutls-openssl-dev libssl-dev
+```
+
 ### Install sSMTP as you see fit
 
 Original install for sSMTP was inspired from this post. Therefore installing from the prescribed patch/build went this way:
+
+```
+
+```
