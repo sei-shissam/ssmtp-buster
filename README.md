@@ -105,7 +105,7 @@ apt-get install po-debconf libgnutls-openssl-dev libssl-dev
 
 ### Install sSMTP as you see fit
 
-Original install for sSMTP was inspired from this post. Therefore installing from the prescribed patch/build went this way (using ```sodo```):
+Original install for sSMTP was inspired from this post. Therefore installing from the prescribed patch/build went this way (using ```sudo```):
 
 ```
 #
