@@ -8,3 +8,7 @@ A once popular smtp agent, [sSMTP](https://wiki.debian.org/sSMTP), is no longer 
 ## Solution: (coming soon)
 
 ## Install Recipe: (coming soon)
+
+## Warning: (coming soon)
+
+## Acknowledgements: (coming soon)
