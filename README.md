@@ -40,7 +40,7 @@ $ ls -l /usr/sbin/ssmtp; (ldd /usr/sbin/ssmtp | grep ssl)
 	libssl.so.1.1 => /lib/arm-linux-gnueabihf/libssl.so.1.1 (0xb6ed6000)
 ```
 
-In this repo, are the changes I made to the Debian GitLab instance of sSMTP to take Erik's steps and integrate that along with the configuration changes to allow building sSMTP using ```dpkg-buildpackage``` to build either sSMTP with the original GnuTLS (using ```--enable-gnutls```) or OpenSSL (using ```--enable-openssl```) (but not both).
+In this repo, are the changes made to the Debian GitLab instance of sSMTP to take Erik's steps and integrate that along with the configuration changes to allow building sSMTP using ```dpkg-buildpackage``` to build either sSMTP with the original GnuTLS (using ```--enable-gnutls```) or OpenSSL (using ```--enable-openssl```) (but not both).
 
 ## Patch/Build Recipe:
 
@@ -72,7 +72,7 @@ tar cf - * | (cd ../ssmtp/ ; tar xfp -)
 cd ../ssmtp
 #
 ```
-#### Now choose, to build either with GnuTLS or OpenSSL
+#### Now choose to build either with GnuTLS or OpenSSL
 ```
 #
 # to select GnuTLS (the default for Debian, which fails under Buster)
@@ -97,7 +97,7 @@ ldd ./ssmtp|grep ssl
 ```
 #### If necessary, resolve dependencies
 
-There can only be one debian/control file, so it is necessary to install both GnuTLS and OpenSSL devs otherwise edit debian/control and remove the one not needed
+There can only be one ```debian/control``` file, so it is necessary to install both GnuTLS and OpenSSL devs otherwise edit ```debian/control``` and remove the one not needed
 
 ```
 apt-get install po-debconf libgnutls-openssl-dev libssl-dev
@@ -105,8 +105,37 @@ apt-get install po-debconf libgnutls-openssl-dev libssl-dev
 
 ### Install sSMTP as you see fit
 
-Original install for sSMTP was inspired from this post. Therefore installing from the prescribed patch/build went this way:
+Original install for sSMTP was inspired from this post. Therefore installing from the prescribed patch/build went this way (using ```sodo```):
 
 ```
-
+#
+# add a sSMTP pseudo-user to protect information in ```ssmtp.conf```
+#
+useradd -g nogroup -d /home/ssmtp -s /usr/sbin/nologin -c "sSMTP pseudo-user" ssmtp
+#
+# copy newly created files to their place (see ```make -n install``` for help)
+#
+cp -i ssmtp /usr/sbin/ssmtp 
+mkdir -p /etc/ssmtp
+#
+# don't accidently overwrite previous created file config files
+#
+# cp -i revalises /etc/ssmtp
+# cp -i ssmtp.conf /etc/ssmtp
+#
+# set the file modes correctly to work with the sSMTP pseudo-user
+#
+chown ssmtp.root /usr/sbin/ssmtp /etc/ssmtp/revaliases /etc/ssmtp/ssmtp.conf
+chmod 4755 /usr/sbin/ssmtp
+chmod 644 /etc/ssmtp/revaliases
+chmod 400 /etc/ssmtp/ssmtp.conf
+#
+# do the man page
+#
+cp -i debian/tmp/usr/share/man/man8/ssmtp.8.gz /usr/share/man/man8/ssmtp.8
+#
+# if this is the first install you may need to run ```generate_config```
+# [this site]() provides a good explaination of ```ssmtp.conf``` and ```revaliases```
+#
+./generate_config /etc/ssmtp/ssmtp.conf
 ```
