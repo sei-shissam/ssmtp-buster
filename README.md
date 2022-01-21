@@ -87,6 +87,7 @@ Alternatively
 ```
 #
 # to select OpenSSL (the reason for this repo)
+# (see warning below about broken versions of dpkg-buildpackage)
 #
 dpkg-buildpackage --rules-file=debian/rules.openssl -b
 #
@@ -105,7 +106,7 @@ apt-get install po-debconf libgnutls-openssl-dev libssl-dev
 
 ### Install sSMTP as you see fit
 
-Original install for sSMTP was inspired from this post. Therefore installing from the prescribed patch/build went this way (using ```sudo```):
+Original install for sSMTP was inspired from [this post](https://wiki.freebsd.org/Ports/mail/ssmtp). Therefore installing from the prescribed patch/build went this way (using ```sudo```):
 
 ```
 #
@@ -120,8 +121,8 @@ mkdir -p /etc/ssmtp
 #
 # don't accidently overwrite previous created file config files
 #
-# cp -i revalises /etc/ssmtp
-# cp -i ssmtp.conf /etc/ssmtp
+# cp -i revaliases /etc/ssmtp/
+# cp -i ssmtp.conf /etc/ssmtp/
 #
 # set the file modes correctly to work with the sSMTP pseudo-user
 #
@@ -130,12 +131,45 @@ chmod 4755 /usr/sbin/ssmtp
 chmod 644 /etc/ssmtp/revaliases
 chmod 400 /etc/ssmtp/ssmtp.conf
 #
-# do the man page
+# do the man pages
 #
-cp -i debian/tmp/usr/share/man/man8/ssmtp.8.gz /usr/share/man/man8/ssmtp.8
+cp -i debian/tmp/usr/share/man/man5/ssmtp.conf.5.gz /usr/share/man/man5/ssmtp.conf.5.gz
+cp -i debian/tmp/usr/share/man/man8/ssmtp.8.gz /usr/share/man/man8/ssmtp.8.gz
+cp -i debian/tmp/usr/share/man/man8/newaliases.8.gz /usr/share/man/man8/newaliases.8.gz
+cp -i debian/tmp/usr/share/man/man8/mailq.8.gz /usr/share/man/man8/mailq.8.gz
+ln -s ssmtp.8.gz /usr/share/man/man8/sendmail.8.gz
 #
 # if this is the first install you may need to run ```generate_config```
-# [this site]() provides a good explaination of ```ssmtp.conf``` and ```revaliases```
+# [this site](https://www.techrepublic.com/blog/it-security/use-ssmtp-to-send-e-mail-simply-and-securely/) provides a good explaination of ```ssmtp.conf``` and ```revaliases```
 #
 ./generate_config /etc/ssmtp/ssmtp.conf
 ```
+
+## Warnings
+
+### dpkg-buildpackage version 1.19.0.5 on Ubuntu 18.04.6 LTS
+
+There is a mistake in command line parsing (which has been fixed downstream) where the command line arg ```--rules-file=``` is not correct in ```/usr/bin/dpkg-buildpackage```. Here is a ```diff``` to show the repair which may need to be made:
+
+```
+diff -Naur /usr/bin/dpkg-buildpackage /tmp/dpkg-buildpackage 
+--- /usr/bin/dpkg-buildpackage	2019-09-05 21:05:14.000000000 +0000
++++ /tmp/dpkg-buildpackage	2022-01-21 21:19:38.471797357 +0000
+@@ -343,7 +343,7 @@
+     } elsif (m/^-[EW]$/) {
+ 	# Deprecated option
+ 	warning(g_('-E and -W are deprecated, they are without effect'));
+-    } elsif (/^-R(.*)$/ or /^--rules-target=(.*)$/) {
++    } elsif (/^-R(.*)$/ or /^--rules-file=(.*)$/) {
+ 	my $arg = $1;
+ 	@debian_rules = split ' ', $arg;
+     } else {
+```
+### sSMTP is fill with bugs
+
+Just because sSMTP can be made to work with Buster does not necessarily mean that it is safe or better. Do check out the [list of bugs captured at Debian here](https://bugs.debian.org/cgi-bin/pkgreport.cgi?pkg=ssmtp;dist=unstable).
+
+### sSMTP debug
+
+Speaking of bugs, be careful, to diagnose problems and running sSMTP with verbose debug (e.g., ```ssmtp -v -d9```) will result in your secrets in ```ssmtp.conf``` to be spilled to log files (e.g., ```/var/log/syslog```).
+
