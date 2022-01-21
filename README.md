@@ -1,7 +1,7 @@
 # ssmtp-buster
-Build Ssmtp on Raspbian and Debian Buster
+Build sSMTP on Raspbian and Debian Buster
 
-A once popular smtp agent, [sSMTP](https://wiki.debian.org/sSMTP), is no longer maintained for debian-based systems (Buster and later), including Raspbian. Included in this repo are additional dpkg build files and patches to the [debian package repo for sSMTP](https://salsa.debian.org/debian/ssmtp) so that it can be built for Buster (and later).
+A once popular smtp agent, [sSMTP](https://wiki.debian.org/sSMTP), is no longer maintained for debian-based systems (Buster and later), including Raspbian. Included in this repo are additional ```dpkg``` build files and patches to the [debian package repo for sSMTP](https://salsa.debian.org/debian/ssmtp) so that sSMTP can be built for Buster (and later).
 
 ## Problem:
 
@@ -140,7 +140,7 @@ cp -i debian/tmp/usr/share/man/man8/mailq.8.gz /usr/share/man/man8/mailq.8.gz
 ln -s ssmtp.8.gz /usr/share/man/man8/sendmail.8.gz
 #
 # if this is the first install you may need to run ```generate_config```
-# [this site](https://www.techrepublic.com/blog/it-security/use-ssmtp-to-send-e-mail-simply-and-securely/) provides a good explaination of ```ssmtp.conf``` and ```revaliases```
+# https://www.techrepublic.com/blog/it-security/use-ssmtp-to-send-e-mail-simply-and-securely/ provides a good explaination of ```ssmtp.conf``` and ```revaliases```
 #
 ./generate_config /etc/ssmtp/ssmtp.conf
 ```
