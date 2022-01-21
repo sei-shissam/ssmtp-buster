@@ -80,6 +80,8 @@ dpkg buildpackage -b
 #
 dpkg buildpackage --rules-file=debian/rules.openssl
 #
+```
+
 #### If necessary, resolved dependencies
 
 There can only be one debian/control file, so it is necessary to install both GnuTLS and OpenSSL devs otherwise edit debian/control and remove the one not needed
