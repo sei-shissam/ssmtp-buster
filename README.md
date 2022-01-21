@@ -49,15 +49,3 @@ Here are the susscinct steps which have been tested on Raspbian Stretch, Raspbia
 ### Install sSMTP as you see fit
 
 Original install for sSMTP was inspired from this post. Therefore installing from the prescribed patch/build went this way:
-
-
-
-
-<<<<<<< HEAD
-=======
-## Install Recipe: (coming soon)
-
-## Warning: (coming soon)
-
-## Acknowledgements: (coming soon)
->>>>>>> de0c1a92905fb5a5b5bd29e7e7c7d1b010e7fc15
