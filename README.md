@@ -71,18 +71,31 @@ cd ../ssmtp-buster
 tar cf - * | (cd ../ssmtp/ ; tar xfp -)
 cd ../ssmtp
 #
-# now the choice, to build with the default, Debian
-# selected GnuTLS, simply
+```
+#### Now choose, to build either with GnuTLS or OpenSSL
+```
 #
-dpkg buildpackage -b
+# to select GnuTLS (the default for Debian, which fails under Buster)
 #
-# alternatively, to build with OpenSSL, simply
+dpkg-buildpackage -b
 #
-dpkg buildpackage --rules-file=debian/rules.openssl
+# check if GnuTLS is linked in
+ldd ./ssmtp|grep ssl
+	libgnutls-openssl.so.27 => /lib/arm-linux-gnueabihf/libgnutls-openssl.so.27 (0xb6f08000)
+```
+Alternatively
+```
+#
+# to select OpenSSL (the reason for this repo)
+#
+dpkg-buildpackage --rules-file=debian/rules.openssl -b
+#
+# check if GnuTLS is linked in
+ldd ./ssmtp|grep ssl
+	libssl.so.1.1 => /lib/arm-linux-gnueabihf/libssl.so.1.1 (0xb6eff000)
 #
 ```
-
-#### If necessary, resolved dependencies
+#### If necessary, resolve dependencies
 
 There can only be one debian/control file, so it is necessary to install both GnuTLS and OpenSSL devs otherwise edit debian/control and remove the one not needed
 
