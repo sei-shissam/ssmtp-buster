@@ -173,3 +173,4 @@ Just because sSMTP can be made to work with Buster does not necessarily mean tha
 
 Speaking of bugs, be careful, to diagnose problems and running sSMTP with verbose debug (e.g., ```ssmtp -v -d9```) will result in your secrets in ```ssmtp.conf``` to be spilled to log files (e.g., ```/var/log/syslog```).
 
+## TODOs
